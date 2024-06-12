@@ -153,6 +153,8 @@ with col2:
     st.markdown(f'<div class="prediction-box">Pokemon Name: {pokemon_name}</div>', unsafe_allow_html=True)
 
 # Third section: Generate Pokemon Button
+st.markdown(f'<p class="section-title">Generation:</p>', unsafe_allow_html=True)
+
 
 # Button click handler (add to the main script if necessary)
 if st.button("POKEMON GENERATION"):
