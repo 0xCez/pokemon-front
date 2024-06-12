@@ -63,13 +63,43 @@ def load_custom_css():
         .stImage {
             margin-bottom: -10px;  /* Adjust this value to move the input box closer to the image */
         }
+        .prediction-box {
+            background-color: rgba(59, 76, 202, 0.8);
+            color: #FFCB05;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1em;
+            font-family: 'Press Start 2P', cursive;
+            margin-bottom: 10px;
+            width: 80%;  /* Adjust the width to reduce size */
+            margin: 10px auto;  /* Center the box */
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .section-title {
+            font-size: 1.5em;  /* Unified font size for section titles */
+            color: #FFCB05;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 1px 1px #3B4CCA;
+        }
+        .section-subtitle {
+            font-size: 1.2em;  /* Slightly smaller font size for subtitles */
+            color: #FFCB05;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 1px 1px #3B4CCA;
+            margin-bottom: -10px;  /* Reduce spacing */
+        }
         </style>
         """,
         unsafe_allow_html=True
     )
 
 # Adding a background image
-add_bg_from_local(os.path.join(os.getcwd(), 'images', 'bourg_palette.png' ))
+add_bg_from_local(os.path.join(os.getcwd(), 'images', 'pok_bckgrnd.png' ))
 
 # Load custom CSS
 load_custom_css()
@@ -77,48 +107,60 @@ load_custom_css()
 # Centering the title
 st.markdown('<p class="title">Pokemon Generator</p>', unsafe_allow_html=True)
 
-# Adding instructions
-st.markdown('''
-## Generate New Pokemon
-''')
-st.markdown('''
-Input the parameters for generating a new Pokemon and get an image of the generated Pokemon.
-''')
+# First section: Upload button and image display
+st.markdown('<p class="section-title">Classification</p>', unsafe_allow_html=True)
+st.markdown('<p class="section-subtitle">Upload Picture</p>', unsafe_allow_html=True)
+uploaded_file = st.file_uploader("")
+if uploaded_file is not None:
+    st.image(uploaded_file, caption='Uploaded Image.', use_column_width=True)
 
-# Adding images as labels for input fields
-name_image = Image.open(os.path.join(os.getcwd(), 'images', 'button_1.png' ))
-type_image = Image.open(os.path.join(os.getcwd(), 'images', 'button_2.png'))
-generation_image = Image.open(os.path.join(os.getcwd(), 'images', 'button_3.png'))
+    # Call the prediction API
+    # Assuming your prediction API endpoint is /predict
+    response = requests.post("https://pokedex-6cnzjfgdzq-od.a.run.app/predict", files={"file": uploaded_file})
+    if response.status_code == 200:
+        prediction = response.json()
+        type_of_pokemon = prediction.get("type")
+        pokemon_name = prediction.get("name")
+        generation = prediction.get("generation")
+    else:
+        st.error("Prediction failed")
+        type_of_pokemon = "Unknown"
+        pokemon_name = "Unknown"
+        generation = "Unknown"
+else:
+    type_of_pokemon = ""
+    pokemon_name = ""
+    generation = ""
 
-# Set the width of the images consistently
-image_width = 150
 
-st.image(name_image, width=image_width)
-name = st.text_input("", key="name")
+st.markdown('<p class="section-title">Pokemon Information</p>', unsafe_allow_html=True)
 
-st.image(type_image, width=image_width)
-type_ = st.text_input("", key="type")
+col1, col2 = st.columns(2)
 
-st.image(generation_image, width=image_width)
-generation = st.number_input("", min_value=1, max_value=8, step=1, key="generation")
+with col1:
+    st.markdown('<div class="prediction-box">Pokemon type: </div>', unsafe_allow_html=True)
+with col2:
+    st.markdown('<div class="prediction-box">Pokemon Name: </div>', unsafe_allow_html=True)
 
-# File upload
-uploaded_file = st.file_uploader("Choose a Pokemon")
+st.markdown(f'<p class="section-title">Generation:</p>', unsafe_allow_html=True)
 
-# Button to generate Pokemon
-if st.button("Generate Pokemon"):
+# Third section: Generate Pokemon Button
+
+# Button click handler (add to the main script if necessary)
+if st.button("POKEMON GENERATION"):
+
     # Construct the API request
     params = {
-        "name": name,
-        "type": type_,
+        "name": pokemon_name,
+        "type": type_of_pokemon,
         "generation": generation
     }
 
     # Call the FastAPI endpoint
-    response = requests.get("http://localhost:8000/generate", params=params)
+    response = requests.get("https://pokedex-6cnzjfgdzq-od.a.run.app/generate", params=params)
 
     if response.status_code == 200:
         pokemon_image = response.json().get("image_url")
-        st.image(pokemon_image, caption=f"{name} - {type_} - Generation {generation}")
+        st.image(pokemon_image, caption=f"{pokemon_name} - {type_of_pokemon}")
     else:
         st.error("Failed to generate Pokemon.")
