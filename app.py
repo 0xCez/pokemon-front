@@ -3,6 +3,7 @@ import requests
 from PIL import Image
 import base64
 import os
+from io import BytesIO
 
 # Function to add a background image from a local file
 def add_bg_from_local(image_file):
@@ -99,7 +100,7 @@ def load_custom_css():
     )
 
 # Adding a background image
-add_bg_from_local(os.path.join(os.getcwd(), 'images', 'pok_bckgrnd.png' ))
+add_bg_from_local(os.path.join(os.getcwd(), 'images', 'pok_bckgrnd.png'))
 
 # Load custom CSS
 load_custom_css()
@@ -111,56 +112,61 @@ st.markdown('<p class="title">Pokemon Generator</p>', unsafe_allow_html=True)
 st.markdown('<p class="section-title">Classification</p>', unsafe_allow_html=True)
 st.markdown('<p class="section-subtitle">Upload Picture</p>', unsafe_allow_html=True)
 uploaded_file = st.file_uploader("")
+
+type_of_pokemon = ""
+pokemon_name = ""
+
 if uploaded_file is not None:
-    st.image(uploaded_file, caption='Uploaded Image.', use_column_width=True)
+    img = Image.open(uploaded_file)
+    st.image(img, caption='Uploaded Image', use_column_width=False)
+    # Convert image to RGB if it's in RGBA mode
+    if img.mode == 'RGBA':
+        img = img.convert('RGB')
+    # Convert the image to bytes for API request
+    buffered = BytesIO()
+    img.save(buffered, format="JPEG")
+    img_bytes = buffered.getvalue()
+    # st.image(uploaded_file, caption='Uploaded Image.', use_column_width=True)
 
     # Call the prediction API
     # Assuming your prediction API endpoint is /predict
-    response = requests.post("https://pokedex-6cnzjfgdzq-od.a.run.app/predict", files={"file": uploaded_file})
+    response = requests.post("https://pokedex-6cnzjfgdzq-od.a.run.app/predict", files={"img": ("filename", img_bytes, "image/jpeg")})
     if response.status_code == 200:
         prediction = response.json()
         type_of_pokemon = prediction.get("type")
-        pokemon_name = prediction.get("name")
-        generation = prediction.get("generation")
+        pokemon_name = prediction.get("Pokemon")
     else:
         st.error("Prediction failed")
         type_of_pokemon = "Unknown"
         pokemon_name = "Unknown"
-        generation = "Unknown"
 else:
     type_of_pokemon = ""
     pokemon_name = ""
-    generation = ""
-
 
 st.markdown('<p class="section-title">Pokemon Information</p>', unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown('<div class="prediction-box">Pokemon type: </div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="prediction-box">Pokemon type: {type_of_pokemon}</div>', unsafe_allow_html=True)
 with col2:
-    st.markdown('<div class="prediction-box">Pokemon Name: </div>', unsafe_allow_html=True)
-
-st.markdown(f'<p class="section-title">Generation:</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="prediction-box">Pokemon Name: {pokemon_name}</div>', unsafe_allow_html=True)
 
 # Third section: Generate Pokemon Button
 
 # Button click handler (add to the main script if necessary)
 if st.button("POKEMON GENERATION"):
 
-    # Construct the API request
-    params = {
-        "name": pokemon_name,
-        "type": type_of_pokemon,
-        "generation": generation
-    }
-
     # Call the FastAPI endpoint
-    response = requests.get("https://pokedex-6cnzjfgdzq-od.a.run.app/generate", params=params)
+    response = requests.get("https://pokedex-6cnzjfgdzq-od.a.run.app/generate")
 
     if response.status_code == 200:
-        pokemon_image = response.json().get("image_url")
-        st.image(pokemon_image, caption=f"{pokemon_name} - {type_of_pokemon}")
+        try:
+            # Attempt to open the response as an image
+            image = Image.open(BytesIO(response.content))
+            st.image(image)
+        except Exception as e:
+            # Handle errors in opening the image
+            st.error(f"Failed to decode image: {e}")
     else:
         st.error("Failed to generate Pokemon.")
