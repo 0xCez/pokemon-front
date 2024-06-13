@@ -1,5 +1,5 @@
 # start_api:
-# uvicorn app:app --reload
+# 	uvicorn app:app --reload
 
 start_streamlit:
 	streamlit run app.py
