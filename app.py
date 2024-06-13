@@ -183,6 +183,9 @@ def load_custom_css():
         #     width: 70%;
         # }
         
+        .block-container {
+            background: rgba(0, 0, 0, 0.6);
+        }
         </style>
         """,
         unsafe_allow_html=True
