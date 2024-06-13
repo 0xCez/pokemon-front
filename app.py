@@ -182,6 +182,16 @@ def load_custom_css():
         # .css-1a3it4f {
         #     width: 70%;
         # }
+        # .st-emotion-cache-12xsiil {
+        #     color: #97A6C3;
+        # }
+        # .st-emotion-cache-12xsiil>small {
+        #     color: #97A6C3;
+        # }
+        
+        .st-ca {
+            background-color: rgb(255 255 255 / 20%);
+        }
         
         .block-container {
             background: rgba(0, 0, 0, 0.6);
@@ -238,7 +248,7 @@ with tab1:
             type_of_pokemon = prediction.get("type")
             pokemon_name = prediction.get("Pokemon")
             
-            time.sleep(3)
+            time.sleep(1)
             
             # Fetching badge and pokemon images
             type_img_path = f"images/badges/{type_of_pokemon}.png"
@@ -286,7 +296,7 @@ with tab2:
                 type_of_pokemon = result.get("type")
                 pokemon_name = result.get("Pokemon")
                 
-                time.sleep(3)
+                time.sleep(1)
 
                 # Fetching badge and pokemon images
                 type_img_path = f"images/badges/{type_of_pokemon}.png"
