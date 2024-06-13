@@ -186,6 +186,9 @@ def load_custom_css():
         .block-container {
             background: rgba(0, 0, 0, 0.6);
         }
+        footer {
+            background: rgba(0, 0, 0, 0.6);
+        }
         </style>
         """,
         unsafe_allow_html=True
